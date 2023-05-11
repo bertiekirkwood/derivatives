@@ -1,5 +1,12 @@
 # optional programming exercise for fundamentals, week 6
 
+def calc(function, x):
+    result = 0
+    for order, coeff in function.items():
+        result += coeff * (x ** order)
+    return result
+
+
 def derive(coefficients, n):
     """Calculates nth derivatives of polynomial stored in coefficients."""
     # coeffs is dictionary as {order of x: coefficient}
@@ -7,9 +14,9 @@ def derive(coefficients, n):
         return coefficients
     else:
         results = {}
-        for orders in coefficients:
-            results[orders - 1] = orders * coefficients[orders]
-        return derive(results, n-1)
+        for order, coeff in coefficients.items():
+            results[order - 1] = order * coeff
+        return derive(results, n - 1)
 
 
 def derivative_to_string(coefficients):
@@ -34,19 +41,27 @@ def derivative_to_string(coefficients):
         else:
             output_string += x
         if index < len(elements) - 1:
-            if elements[index+1][0] == '-':
+            if elements[index + 1][0] == '-':
                 output_string += " - "
             else:
                 output_string += " + "
     return output_string
 
 
-def newton():
-    pass
+def newton(f, fdash, dp, x_log=None, iterations=0):
+    """Repeats Newton's algorithm until accuracy to specified number of decimal places found."""
+    if x_log is None:
+        x_log = [0.0, 1.0]
+
+    if round(x_log[-1], dp) == round(x_log[-2], dp):
+        return round(x_log[-1], dp), iterations
+    else:
+        next_x = x_log[-1] - (calc(f, x_log[-1]) / calc(fdash, x_log[-1]))
+        x_log.append(next_x)
+        return newton(f, fdash, dp, x_log=x_log, iterations=iterations+1)
 
 
-def main():
-    degree = int(input("Enter degree of derivative: "))
+def get_function():
     highest = int(input("Enter highest order: "))
     lowest = int(input("Enter lowest order: "))
     c = {}
@@ -55,7 +70,24 @@ def main():
             c[i] = int(input(f"Enter coefficient of x^{i}: "))
         else:
             c[i] = int(input("Enter constant: "))
-    print("Result: " + derivative_to_string(derive(c, degree)))
+    return c
+
+
+def main():
+    # standard derivative calculations:
+    # degree = int(input("Enter degree of derivative: "))
+    # c = get_function()
+    # print("Result: " + derivative_to_string(derive(c, degree)))
+
+    # newton's thing
+    # func = get_function()
+    # f_dash = derive(func, 1)
+    # dp = int(input("Enter desired accuracy: "))
+    func = {3: 1, 2: -3, 0: 2}
+    for i in range(20):
+        result, iterations = newton(func, derive(func, 1), i, x_log=[0.0, 100.0])
+        print(result)
+        print(f"Took {iterations} iterations.")
 
 
 main()
